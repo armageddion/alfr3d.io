@@ -1,70 +1,110 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>·ALFR3D·</title>
-    <link rel="stylesheet" href="css/styles.min.css">
-    <script src="//use.typekit.net/tfn2bsd.js"></script>    
-    <script>try{Typekit.load();}catch(e){}</script>
-    <script src="https://cdn.firebase.com/js/client/2.1.2/firebase.js"></script>
-    <script src="js/three.min.js"></script>
-  </head>
-  <body>
-    <p class="alfr3d_url" id="alfr3d_url"></p>
-<script>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>·ALFR3D·</title>
+        <link rel="stylesheet" href="css/styles.min.css">
+        <script src="//use.typekit.net/tfn2bsd.js"></script>    
+        <script>try{Typekit.load();}catch(e){}</script>
+        <script src="https://cdn.firebase.com/js/client/2.1.2/firebase.js"></script>
+        
+        <script src="js/three.min.js"></script>
+        <script src="js/controls/TrackballControls.js"></script>
+    </head>
+    <body>
+        <p class="alfr3d_url" id="alfr3d_url"></p>
+        <script>
 
-        var scene, camera, renderer;
-        var geometry, material, mesh;
+                var scene, camera, renderer;
+                var background_geometry, background_material, background_mesh;
+                var dot_geometry, dot_material, dot_mesh;                
+                var mouse, center;
+                var controls;
 
-        init();
-        animate();
+                var dots = [window.innerWidth/20];
 
-        function init() {
+                init();
+                animate();
 
-                scene = new THREE.Scene();
+                function init() {
+                    scene = new THREE.Scene();
+                    center = new THREE.Vector3();
+                    center.z = - 1000;                        
 
-                camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
-                camera.position.z = 1000;
+                    camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
+                    camera.position.z = 1000;
 
-                background = new THREE.PlaneGeometry(100.100,4,4);
-                background_material = new THREE.MeshBasicMaterial( { color: 0x33b5e5, wireframe: true } );
+                    background_geometry = new THREE.BoxGeometry(window.innerWidth,window.innerHeight,1);
+                    background_material = new THREE.MeshBasicMaterial({ color: 0x33b5e5, wireframe: true });
+                    background_mesh = new THREE.Mesh(background_geometry,background_material);
+                    scene.add(background_mesh);
 
-                background_mesh = new THREE.Mesh(background,background_material);
-                scene.add(background_mesh)
+                    dot_geometry = new THREE.SphereGeometry(5,32,32);
+                    dot_material = new THREE.MeshBasicMaterial({ color: 0x33b5e5, wireframe: true });
+                    dot_mesh = new THREE.Mesh(dot_geometry, dot_material);
+                    dot_mesh.position.set(-window.innerWidth/2,-window.innerHeight/2,0);
+                    scene.add(dot_mesh);
 
-                geometry = new THREE.BoxGeometry( 200, 200, 200 );
-                material = new THREE.MeshBasicMaterial( { color: 0x33b5e5, wireframe: true } );
+                    // for(var i=0; i < window.innerWidth; i+=window.innerWidth/20){
+                    //     for(var j=0; j < window.innerHeight; j+=window.innerHeight/10){
+                    //         dots[i][j] = new THREE.Mesh(dot_geometry, dot_material);
+                    //         dots[i][j].position.set(i-window.innerWidth/2,j-window.innerHeight/2,0);
+                    //         scene.add(dots[i][j]);
 
-                mesh = new THREE.Mesh( geometry, material );
-                scene.add( mesh );     
-                
-                renderer = new THREE.WebGLRenderer({alpha: true, antialias: true});
-                renderer.setSize( window.innerWidth, window.innerHeight );
-                renderer.setClearColor(0xffffff, 0);
+                    //     }
+                    // }
 
-                document.body.appendChild( renderer.domElement );
+                    
+                    renderer = new THREE.WebGLRenderer({alpha: true, antialias: true});
+                    renderer.setSize( window.innerWidth, window.innerHeight );
+                    renderer.setClearColor(0xffffff, 0);
 
-        }
+                    document.body.appendChild( renderer.domElement );
 
-        function animate() {
+                    controls = new THREE.TrackballControls( camera, renderer.domElement );
+                    controls.rotateSpeed = 0.5;
+                    controls.minDistance = 500;
+                    controls.maxDistance = 6000;
+                    controls.addEventListener( 'change', render );      
 
-                requestAnimationFrame( animate );
+                    mouse = new THREE.Vector3( 0, 0, 1 );
+                    document.addEventListener( 'mousemove', onDocumentMouseMove, false );              
+                }
 
-                mesh.rotation.x += 0.01;
-                mesh.rotation.y += 0.02;
+                function onDocumentMouseMove( event ) {
+                    mouse.x = ( event.clientX - window.innerWidth / 2 ) * 0.5;
+                    mouse.y = ( event.clientY - window.innerHeight / 2 ) * 0.5;
+                }                
 
-                renderer.render( scene, camera );
+                function animate() {
+                    requestAnimationFrame( animate );
 
-        }
+                    camera.position.x += ( mouse.x - camera.position.x ) * 0.05;
+                    camera.position.y += ( - mouse.y - camera.position.y ) * 0.05;
+                    camera.lookAt( center );
 
-</script>
+                    renderer.render( scene, camera );
+                }
 
-    <footer class="footer">
-      <p>..ALFR3D..2015..LitTl3.1 Industri3s..</p>
-    </footer>
-    <script src="js/scripts.min.js"></script>
-    <script src="js/logon.js"></script>
-    <script src="js/alfr3dfb.js"></script>
-  </body>
+                function render() {
+                    renderer.render( scene, camera );
+                }                
+
+                function onWindowResize() {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+
+                    renderer.setSize( window.innerWidth, window.innerHeight );
+
+                    render();
+                }                
+
+        </script>
+
+        <footer class="footer">
+            <p>..ALFR3D..2015..LitTl3.1 Industri3s..</p>
+        </footer>
+        <script src="js/scripts.min.js"></script>
+    </body>
 </html>
