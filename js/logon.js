@@ -141,7 +141,7 @@ var randInt = function(a, b) {
 				console.log(ret);
 				document.getElementById('alfr3d_url').innerHTML = ret;			
 				write();
-			}, randInt(100, 500));
+			}, randInt(100, 300));
 			if (ret_counter >= snapshot.val().length) {
 				clearTimeout(timer); 
 				window.location.href = "http://"+snapshot.val()+"/alfr3d.io/main.html";
